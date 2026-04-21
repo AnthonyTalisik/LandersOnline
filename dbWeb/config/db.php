@@ -1,5 +1,5 @@
 <?php
-$conn = new mysqli("localhost", "root", "imdbsys31", "WorkSphere");
+$conn = new mysqli("localhost", "root", "", "LandersOnline");
 
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
