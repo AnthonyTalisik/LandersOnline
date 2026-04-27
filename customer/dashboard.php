@@ -4,7 +4,7 @@ require_once("../config/db.php");
 
 // CHECK LOGIN
 if(!isset($_SESSION['account_id']) || $_SESSION['role'] != 'employee'){
-    header("Location: /dbweb/auth/login.php");
+    header("Location: /LandersOnline/auth/login.php");
     exit();
 }
 
