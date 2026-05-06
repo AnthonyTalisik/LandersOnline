@@ -1,7 +1,4 @@
--- ================================================================
---  LandersOnline — Run in phpMyAdmin > SQL tab
---  Database: LandersOnline
--- ================================================================
+CREATE DATABASE LANDERSONLINE;
  
 USE LandersOnline;
  
@@ -86,16 +83,9 @@ INSERT IGNORE INTO Categories (Cat_Name) VALUES
 ('Electronics'), ('Fruits & Vegetables'), ('Dairy & Chilled'),
 ('Bakery'), ('Frozen');
  
--- ================================================================
---  ADMIN ACCOUNT — plain text password, must change on first login
---
---  To add more admins later, just run another INSERT like this:
---
---    INSERT INTO Accounts (Acct_Email, Acct_Password, Acct_Role, Acct_MustChangePw)
---    VALUES ('newadmin@landers.ph', 'TempPassword99', 'admin', 1);
---
---  They log in with the plain text password, get forced to the
---  Set Password page, and their new password is stored hashed.
--- ================================================================
+
+
+
+--  ADMIN ACCOUNT — plain text password, must chan  ge on first login 
 INSERT IGNORE INTO Accounts (Acct_Email, Acct_Password, Acct_Role, Acct_Status, Acct_MustChangePw)
 VALUES ('admin@landers.ph', 'Admin@123', 'admin', 'active', 1);
