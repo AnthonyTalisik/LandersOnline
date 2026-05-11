@@ -8,12 +8,13 @@ if (!isset($_SESSION['account_id']) || $_SESSION['role'] !== 'admin') {
     exit();
 }
 
-// ── ADD ──
+
+// ── ADD PRODUCT ──
 if (isset($_POST['add_product'])) {
     $name = trim($_POST['prod_name']);
     $catId = (int) $_POST['cat_id'];
     $price = (float) $_POST['price'];
-    $oldPrice = ($_POST['old_price'] !== '') ? (float) $_POST['old_price'] : null;
+    $oldPrice = $_POST['old_price'] !== '' ? (float) $_POST['old_price'] : null;
     $size = trim($_POST['size'] ?? '');
     $stock = (int) $_POST['stock'];
     $image = trim($_POST['image_url'] ?? '');
@@ -22,36 +23,19 @@ if (isset($_POST['add_product'])) {
     $id = ($r->fetch_assoc()['m'] ?? 1000) + 1;
 
     $stmt = $conn->prepare("
-        INSERT INTO Products
-            (Prod_Id, Prod_CatId, Prod_Name, Prod_Size, Prod_Price, Prod_OldPrice, Prod_Stock, Prod_Image, Prod_Status)
+        INSERT INTO Products (Prod_Id, Prod_CatId, Prod_Name, Prod_Size, Prod_Price, Prod_OldPrice, Prod_Stock, Prod_Image, Prod_Status)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
+    ");
+    $stmt->bind_param("iissddiis", $id, $catId, $name, $size, $price, $oldPrice, $stock, $image);
+    // Fix: correct bind
+    $stmt = $conn->prepare("
+        INSERT INTO Products (Prod_Id, Prod_CatId, Prod_Name, Prod_Size, Prod_Price, Prod_OldPrice, Prod_Stock, Prod_Image, Prod_Status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
     ");
     $stmt->bind_param("iissdids", $id, $catId, $name, $size, $price, $oldPrice, $stock, $image);
+
     $_SESSION['success'] = $stmt->execute() ? "Product added!" : "Error: " . $conn->error;
-    header('Location: manage_products.php');
-    exit();
-}
-
-// ── UPDATE ──
-if (isset($_POST['update_product'])) {
-    $id = (int) $_POST['prod_id'];
-    $name = trim($_POST['prod_name']);
-    $catId = (int) $_POST['cat_id'];
-    $price = (float) $_POST['price'];
-    $oldPrice = ($_POST['old_price'] !== '') ? (float) $_POST['old_price'] : null;
-    $size = trim($_POST['size'] ?? '');
-    $stock = (int) $_POST['stock'];
-    $image = trim($_POST['image_url'] ?? '');
-
-    $stmt = $conn->prepare("
-        UPDATE Products
-        SET Prod_Name=?, Prod_CatId=?, Prod_Size=?, Prod_Price=?,
-            Prod_OldPrice=?, Prod_Stock=?, Prod_Image=?
-        WHERE Prod_Id=?
-    ");
-    $stmt->bind_param("sisdidsi", $name, $catId, $size, $price, $oldPrice, $stock, $image, $id);
-    $_SESSION['success'] = $stmt->execute() ? "Product updated!" : "Error: " . $conn->error;
-    header('Location: manage_products.php');
+    header("Location: manage_products.php");
     exit();
 }
 
@@ -67,7 +51,18 @@ if (isset($_GET['toggle'])) {
     $upd->bind_param("si", $new, $pid);
     $upd->execute();
     $_SESSION['success'] = "Product status updated.";
-    header('Location: manage_products.php');
+    header("Location: manage_products.php");
+    exit();
+}
+
+// ── DELETE PRODUCT ──
+if (isset($_GET['delete'])) {
+    $pid = (int) $_GET['delete'];
+    $stmt = $conn->prepare("DELETE FROM Products WHERE Prod_Id=?");
+    $stmt->bind_param("i", $pid);
+    $stmt->execute();
+    $_SESSION['success'] = "Product deleted.";
+    header("Location: manage_products.php");
     exit();
 }
 
@@ -78,7 +73,6 @@ $products = $conn->query("
     LEFT JOIN Categories c ON p.Prod_CatId = c.Cat_Id
     ORDER BY p.Prod_Id DESC
 ");
-
 $title = 'Manage Products';
 $currentPage = 'manage_products.php';
 ?>
@@ -505,8 +499,13 @@ $currentPage = 'manage_products.php';
                                                 onclick="return confirm('Change product status?')">
                                                 <?= $p['Prod_Status'] === 'active' ? 'Deactivate' : 'Activate' ?>
                                             </a>
+                                            <a href="?delete=<?= $p['Prod_Id'] ?>" class="btn btn-sm btn-danger"
+                                                onclick="return confirm('Permanently delete this product? This cannot be undone.')">
+                                                <i class="bi bi-trash"></i> Delete
+                                            </a>
                                         </div>
                                     </td>
+
                                 </tr>
 
                                 <!-- EDIT MODAL -->
@@ -521,68 +520,42 @@ $currentPage = 'manage_products.php';
                                                 <input type="hidden" name="update_product" value="1">
                                                 <input type="hidden" name="prod_id" value="<?= $p['Prod_Id'] ?>">
                                                 <div class="modal-body">
-                                                    <label style="font-size:12px;color:var(--tm);font-weight:600;">Product
-                                                        Name</label>
                                                     <input type="text" name="prod_name"
                                                         value="<?= htmlspecialchars($p['Prod_Name']) ?>"
-                                                        class="landers-input" required>
-
-                                                    <label
-                                                        style="font-size:12px;color:var(--tm);font-weight:600;">Category</label>
+                                                        class="landers-input" placeholder="Product Name" required>
                                                     <select name="cat_id" class="landers-input">
-                                                        <?php $categories->data_seek(0);
-                                                        while ($c = $categories->fetch_assoc()): ?>
+                                                        <?php
+                                                        $categories->data_seek(0);
+                                                        while ($c = $categories->fetch_assoc()):
+                                                            ?>
                                                             <option value="<?= $c['Cat_Id'] ?>"
                                                                 <?= $c['Cat_Id'] == $p['Prod_CatId'] ? 'selected' : '' ?>>
                                                                 <?= htmlspecialchars($c['Cat_Name']) ?>
                                                             </option>
                                                         <?php endwhile; ?>
                                                     </select>
-
-                                                    <label style="font-size:12px;color:var(--tm);font-weight:600;">Size /
-                                                        Unit</label>
                                                     <input type="text" name="size"
                                                         value="<?= htmlspecialchars($p['Prod_Size'] ?? '') ?>"
-                                                        class="landers-input" placeholder="e.g. 470mL">
-
-                                                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                                                        <div>
-                                                            <label
-                                                                style="font-size:12px;color:var(--tm);font-weight:600;">Price
-                                                                (₱)</label>
-                                                            <input type="number" name="price" step="0.01"
-                                                                value="<?= $p['Prod_Price'] ?>" class="landers-input"
-                                                                required>
-                                                        </div>
-                                                        <div>
-                                                            <label
-                                                                style="font-size:12px;color:var(--tm);font-weight:600;">Old
-                                                                Price – discount (₱)</label>
-                                                            <input type="number" name="old_price" step="0.01"
-                                                                value="<?= $p['Prod_OldPrice'] ?? '' ?>"
-                                                                class="landers-input" placeholder="Leave blank if none">
-                                                        </div>
-                                                    </div>
-
-                                                    <label
-                                                        style="font-size:12px;color:var(--tm);font-weight:600;">Stock</label>
+                                                        class="landers-input" placeholder="Size (e.g. 470mL)">
+                                                    <input type="number" name="price" step="0.01"
+                                                        value="<?= $p['Prod_Price'] ?>" class="landers-input"
+                                                        placeholder="Price" required>
+                                                    <input type="number" name="old_price" step="0.01"
+                                                        value="<?= $p['Prod_OldPrice'] ?>" class="landers-input"
+                                                        placeholder="Old Price (optional)">
                                                     <input type="number" name="stock" value="<?= $p['Prod_Stock'] ?>"
-                                                        class="landers-input">
-
-                                                    <label style="font-size:12px;color:var(--tm);font-weight:600;">Image
-                                                        URL</label>
+                                                        class="landers-input" placeholder="Stock">
                                                     <input type="text" name="image_url"
                                                         value="<?= htmlspecialchars($p['Prod_Image'] ?? '') ?>"
-                                                        class="landers-input" placeholder="https://...">
+                                                        class="landers-input" placeholder="Image URL">
                                                 </div>
                                                 <div class="modal-footer border-0">
-                                                    <button type="submit" class="btn-grn w-100">Update Product</button>
+                                                    <button type="submit" class="btn-landers-green">Update Product</button>
                                                 </div>
                                             </form>
                                         </div>
                                     </div>
                                 </div>
-
                             <?php endwhile; ?>
                         </tbody>
                     </table>

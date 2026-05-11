@@ -90,7 +90,6 @@ $products = $conn->query("
                         <div style="height:24px; padding:8px 10px 0;">
                             <?php if ($prod['Prod_OldPrice'] && $prod['Prod_OldPrice'] > $prod['Prod_Price']): ?>
                                 <?php $disc = round((1 - $prod['Prod_Price'] / $prod['Prod_OldPrice']) * 100); ?>
-                                <span class="badge-discount"><?= $disc ?>% OFF</span>
                             <?php endif; ?>
                         </div>
 
