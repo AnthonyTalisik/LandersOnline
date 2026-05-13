@@ -89,3 +89,6 @@ INSERT IGNORE INTO Categories (Cat_Name) VALUES
 --  ADMIN ACCOUNT — plain text password, must chan  ge on first login 
 INSERT IGNORE INTO Accounts (Acct_Email, Acct_Password, Acct_Role, Acct_Status, Acct_MustChangePw)
 VALUES ('admin@landers.ph', 'Admin@123', 'admin', 'active', 1);
+
+INSERT IGNORE INTO Accounts (Acct_Email, Acct_Password, Acct_Role, Acct_Status, Acct_MustChangePw)
+VALUES ('admin2@landers.ph', 'Admin@1234', 'admin', 'active', 1);

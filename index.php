@@ -41,37 +41,133 @@ $products = $conn->query("
     <!-- ══ MAIN CONTENT ══ -->
     <div style="flex:1;padding:20px 24px;overflow:hidden;">
 
-        <!-- Hero Banner -->
-        <div style="background:linear-gradient(135deg,#3a6b1a 0%,#6aaf35 100%);
-                    border-radius:12px;padding:40px 48px;color:#fff;
-                    margin-bottom:20px;position:relative;overflow:hidden;">
-            <div style="position:absolute;right:-20px;top:-20px;width:200px;height:200px;
-                        background:rgba(255,255,255,.07);border-radius:50%;"></div>
-            <div style="position:absolute;right:60px;top:10px;width:120px;height:120px;
-                        background:rgba(255,255,255,.05);border-radius:50%;"></div>
-            <p style="font-size:13px;margin-bottom:6px;opacity:.85;">We've permanently reduced the</p>
-            <h2 style="font-size:32px;font-weight:900;margin:0 0 4px;">minimum spend to ₱5,000</h2>
-            <p style="opacity:.85;margin-bottom:20px;">for your daily shopping convenience</p>
-            <a href="/landersonline/customer/shop.php" style="background:#1a2e0a;color:#fff;padding:12px 28px;border-radius:6px;
-                      text-decoration:none;font-weight:700;font-size:14px;">
-                SHOP NOW
-            </a>
+        <!-- ══ CAROUSEL ══ -->
+        <div style="position:relative;margin-bottom:22px;border-radius:12px;overflow:hidden;">
+            <div id="promoCarousel" style="position:relative;width:100%;overflow:hidden;">
+
+                <!-- SLIDES -->
+                <div class="promo-slides">
+
+                    <!-- Slide 1 — Free Delivery -->
+                    <div class="promo-slide active"
+                        style="background:url('/LandersOnline/assets/images/1.jpg');
+                                height:300px;display:flex;align-items:center;padding:0 52px;
+                                position:relative;overflow:hidden;">    
+                    </div>
+
+                    <!-- Slide 2 — Marketplace -->
+                    <div class="promo-slide"
+                        style="background:url('/LandersOnline/assets/images/2.jpg');
+                                height:300px;display:flex;align-items:center;padding:0 52px;
+                                position:relative;overflow:hidden;">    
+                    </div>
+
+                    <div class="promo-slide"
+                        style="background:url('/LandersOnline/assets/images/3.jpg');
+                                height:300px;display:flex;align-items:center;padding:0 52px;
+                                position:relative;overflow:hidden;">    
+                    </div>
+                    <div class="promo-slide"
+                        style="background:url('/LandersOnline/assets/images/4.jpg');
+                                height:300px;display:flex;align-items:center;padding:0 52px;
+                                position:relative;overflow:hidden;">    
+                    </div>
+                    <div class="promo-slide"
+                        style="background:url('/LandersOnline/assets/images/5.jpg');
+                                height:300px;display:flex;align-items:center;padding:0 52px;
+                                position:relative;overflow:hidden;">    
+                    </div>
+
+                    <!--
+                    ══════════════════════════════════════════════════════
+                    HOW TO ADD YOUR OWN BANNER IMAGES LATER:
+                    Replace the gradient background with:
+                      style="background:url('/LandersOnline/assets/images/banner1.jpg')
+                             center/cover no-repeat; height:260px; ..."
+                    Just upload banner photos to assets/images/ and swap in the filename.
+                    ══════════════════════════════════════════════════════
+                    -->
+
+                </div><!-- /promo-slides -->
+
+                <!-- PREV / NEXT arrows -->
+                <button onclick="moveSlide(-1)"
+                        style="position:absolute;left:12px;top:50%;transform:translateY(-50%);
+                               background:rgba(0,0,0,.35);color:#fff;border:none;width:40px;height:40px;
+                               border-radius:50%;font-size:18px;cursor:pointer;z-index:10;
+                               display:flex;align-items:center;justify-content:center;
+                               transition:background .2s;"
+                        onmouseover="this.style.background='rgba(0,0,0,.6)'"
+                        onmouseout="this.style.background='rgba(0,0,0,.35)'">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button onclick="moveSlide(1)"
+                        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                               background:rgba(0,0,0,.35);color:#fff;border:none;width:40px;height:40px;
+                               border-radius:50%;font-size:18px;cursor:pointer;z-index:10;
+                               display:flex;align-items:center;justify-content:center;
+                               transition:background .2s;"
+                        onmouseover="this.style.background='rgba(0,0,0,.6)'"
+                        onmouseout="this.style.background='rgba(0,0,0,.35)'">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+
+                <!-- DOT indicators -->
+                <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
+                            display:flex;gap:7px;z-index:10;">
+                    <button class="carousel-dot active" onclick="goSlide(0)"></button>
+                    <button class="carousel-dot"        onclick="goSlide(1)"></button>
+                    <button class="carousel-dot"        onclick="goSlide(2)"></button>
+                    <button class="carousel-dot"        onclick="goSlide(3)"></button>
+                    <button class="carousel-dot"        onclick="goSlide(4)"></button>
+                    <button class="carousel-dot"        onclick="goSlide(5)"></button>
+                </div>
+            </div>
         </div>
 
-        <!-- Marketplace Banner -->
-        <div style="background:var(--green-main);border-radius:10px;padding:22px 32px;
-                    color:#fff;margin-bottom:24px;display:flex;align-items:center;
-                    justify-content:space-between;">
-            <div>
-                <h4 style="margin:0;font-weight:900;font-size:22px;">EXPLORE OUR ONLINE MARKETPLACE</h4>
-                <p style="margin:4px 0 0;opacity:.9;">Shop 10,000+ online-exclusive items &rarr;</p>
-            </div>
-            <a href="/landersonline/customer/shop.php" style="background:#fff;color:var(--green-dark);padding:10px 22px;
-                      border-radius:6px;font-weight:700;text-decoration:none;
-                      white-space:nowrap;font-size:13px;">
-                Shop Now
-            </a>
-        </div>
+        <style>
+            .promo-slides { display:flex; transition:transform .5s ease; }
+            .promo-slide  { min-width:100%; flex-shrink:0; }
+            .carousel-dot {
+                width:10px; height:10px; border-radius:50%;
+                background:rgba(255,255,255,.45); border:none; cursor:pointer;
+                padding:0; transition:background .2s, transform .2s;
+            }
+            .carousel-dot.active { background:#fff; transform:scale(1.3); }
+        </style>
+
+        <script>
+            let currentSlide = 0;
+            const totalSlides = 5;
+            let autoTimer;
+
+            function updateCarousel() {
+                document.querySelector('.promo-slides').style.transform =
+                    'translateX(-' + (currentSlide * 100) + '%)';
+                document.querySelectorAll('.carousel-dot').forEach((d, i) =>
+                    d.classList.toggle('active', i === currentSlide));
+            }
+
+            function moveSlide(dir) {
+                currentSlide = (currentSlide + dir + totalSlides) % totalSlides;
+                updateCarousel();
+                resetTimer();
+            }
+
+            function goSlide(idx) {
+                currentSlide = idx;
+                updateCarousel();
+                resetTimer();
+            }
+
+            function resetTimer() {
+                clearInterval(autoTimer);
+                autoTimer = setInterval(() => moveSlide(1), 5000);
+            }
+
+            // Auto-slide every 5 seconds
+            autoTimer = setInterval(() => moveSlide(1), 5000);
+        </script>
 
         <!-- Products Section -->
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
