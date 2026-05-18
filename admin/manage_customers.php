@@ -273,7 +273,7 @@ $currentPage = 'manage_customers.php';
             <i class="bi <?= $i ?>"></i> <?= $l ?>
         </a>
     <?php endforeach; ?>
-
+        
     <div class="adm-divider"></div>
 
     <div class="adm-footer">
@@ -281,7 +281,7 @@ $currentPage = 'manage_customers.php';
             <i class="bi bi-box-arrow-right"></i> Logout
         </a>
     </div>
-</aside>
+</aside>    
 
 <!-- ══ MAIN ══ -->
 <div class="adm-main">

@@ -43,7 +43,7 @@ $delivFee  = $subtotal >= 5000 ? 0 : 150;
 $total     = $subtotal + $delivFee;
 
 // ── LOAD CUSTOMER INFO for pre-fill ────────────────────────────────
-$custQ = $conn->prepare("SELECT * FROM Customers WHERE Cust_Id = ? LIMIT 1");
+$custQ = $conn->prepare("SELECT Cust_Id, Cust_FName, Cust_LName, Cust_Phone FROM Customers WHERE Cust_Id = ? LIMIT 1");
 $custQ->bind_param("i", $custId);
 $custQ->execute();
 $cust = $custQ->get_result()->fetch_assoc();
@@ -52,10 +52,12 @@ $cust = $custQ->get_result()->fetch_assoc();
 if (isset($_POST['place_order'])) {
     $address = trim($_POST['address'] ?? '');
     $phone   = trim($_POST['phone']   ?? '');
-    $name    = trim($_POST['fullname']?? '');
+    $fname   = trim($_POST['fname'] ?? '');
+    $lname   = trim($_POST['lname'] ?? '');
+    $name    = $fname . ' ' . $lname;
 
-    if (empty($address) || empty($name)) {
-        $formError = "Please fill in your full name and delivery address.";
+    if (empty($address) || empty($fname) || empty($lname)) {
+        $formError = "Please fill in your first name, last name, and delivery address.";
     } else {
         // Insert into Orders
         $ordStmt = $conn->prepare("
@@ -93,8 +95,8 @@ if (isset($_POST['place_order'])) {
         $delCart->execute();
 
         // Update customer phone/name if changed
-        $updCust = $conn->prepare("UPDATE Customers SET Cust_Name=?, Cust_Phone=? WHERE Cust_Id=?");
-        $updCust->bind_param("ssi", $name, $phone, $custId);
+        $updCust = $conn->prepare("UPDATE Customers SET Cust_FName=?, Cust_LName=?, Cust_Phone=? WHERE Cust_Id=?");
+        $updCust->bind_param("sssi", $fname, $lname, $phone, $custId);
         $updCust->execute();
 
         $_SESSION['cart_count'] = 0;
@@ -133,13 +135,26 @@ include "../layout/layout.php";
                     <i class="bi bi-geo-alt me-2"></i>Delivery Information
                 </h6>
 
-                <label style="font-size:12px;font-weight:600;color:#5a6a4a;">Full Name *</label>
-                <input type="text" name="fullname"
-                       value="<?= htmlspecialchars($cust['Cust_Name'] ?? $_SESSION['display_name'] ?? '') ?>"
-                       style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;
-                              font-size:14px;margin-bottom:12px;outline:none;"
-                       onfocus="this.style.borderColor='#3d7a18'" onblur="this.style.borderColor='#ddd'"
-                       placeholder="Your full name" required>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                    <div>
+                        <label style="font-size:12px;font-weight:600;color:#5a6a4a;">First Name *</label>
+                        <input type="text" name="fname"
+                               value="<?= htmlspecialchars($cust['Cust_FName'] ?? '') ?>"
+                               style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;
+                                      font-size:14px;margin-top:4px;outline:none;"
+                               onfocus="this.style.borderColor='#3d7a18'" onblur="this.style.borderColor='#ddd'"
+                               placeholder="Juan" required>
+                    </div>
+                    <div>
+                        <label style="font-size:12px;font-weight:600;color:#5a6a4a;">Last Name *</label>
+                        <input type="text" name="lname"
+                               value="<?= htmlspecialchars($cust['Cust_LName'] ?? '') ?>"
+                               style="width:100%;padding:10px 14px;border:1.5px solid #ddd;border-radius:8px;
+                                      font-size:14px;margin-top:4px;outline:none;"
+                               onfocus="this.style.borderColor='#3d7a18'" onblur="this.style.borderColor='#ddd'"
+                               placeholder="Dela Cruz" required>
+                    </div>
+                </div>
 
                 <label style="font-size:12px;font-weight:600;color:#5a6a4a;">Mobile Number</label>
                 <input type="tel" name="phone"

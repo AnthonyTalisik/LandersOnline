@@ -22,24 +22,34 @@ if (isset($_POST['update_status'])) {
 $filter = $_GET['status'] ?? '';
 if ($filter) {
     $stmt = $conn->prepare("
-        SELECT o.*, cu.Cust_Name, cu.Cust_Phone, COUNT(oi.OrdItem_Id) AS items
+        SELECT 
+            o.*, 
+            CONCAT(cu.Cust_FName, ' ', cu.Cust_LName) AS Cust_Name,
+            cu.Cust_Phone,
+            COUNT(oi.OrdItem_Id) AS items
         FROM Orders o
         JOIN Customers cu ON o.Ord_CustId=cu.Cust_Id
         LEFT JOIN OrderItems oi ON oi.OrdItem_OrdId=o.Ord_Id
         WHERE o.Ord_Status=?
-        GROUP BY o.Ord_Id ORDER BY o.Ord_Id DESC
+        GROUP BY o.Ord_Id 
+        ORDER BY o.Ord_Id DESC
     ");
     $stmt->bind_param("s", $filter);
     $stmt->execute();
     $orders = $stmt->get_result();
 } else {
     $orders = $conn->query("
-        SELECT o.*, cu.Cust_Name, cu.Cust_Phone, COUNT(oi.OrdItem_Id) AS items
-        FROM Orders o
-        JOIN Customers cu ON o.Ord_CustId=cu.Cust_Id
-        LEFT JOIN OrderItems oi ON oi.OrdItem_OrdId=o.Ord_Id
-        GROUP BY o.Ord_Id ORDER BY o.Ord_Id DESC
-    ");
+    SELECT 
+        o.*,        
+        CONCAT(cu.Cust_FName, ' ', cu.Cust_LName) AS Cust_Name,
+        cu.Cust_Phone,
+        COUNT(oi.OrdItem_Id) AS items
+    FROM Orders o
+    JOIN Customers cu ON o.Ord_CustId=cu.Cust_Id
+    LEFT JOIN OrderItems oi ON oi.OrdItem_OrdId=o.Ord_Id
+    GROUP BY o.Ord_Id 
+    ORDER BY o.Ord_Id DESC
+");
 }
 
 $title = 'Manage Orders';
@@ -369,8 +379,6 @@ $currentPage = 'manage_orders.php';
         .adm-footer a:hover {
             color: #f87171;
         }
-
-        
     </style>
 </head>
 

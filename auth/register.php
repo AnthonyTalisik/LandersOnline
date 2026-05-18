@@ -15,7 +15,9 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 $email    = trim($_POST['email']           ?? '');
 $password = $_POST['password']             ?? '';
 $confirm  = $_POST['confirm_password']     ?? '';
-$fullname = trim($_POST['fullname']        ?? '');
+$fname    = trim($_POST['fname'] ?? '');
+$lname    = trim($_POST['lname'] ?? '');
+$fullname = $fname . ' ' . $lname;
 $phone    = trim($_POST['phone']           ?? '');
 
 
@@ -79,12 +81,12 @@ $newAcctId = $conn->insert_id;
 
 // ── Insert Customer profile ───────────────────────────────────────
 $s2 = $conn->prepare("
-    INSERT INTO Customers (Cust_AcctId, Cust_Name, Cust_Phone)
-    VALUES (?, ?, ?)
+    INSERT INTO Customers (Cust_AcctId, Cust_FName, Cust_LName, Cust_Phone)
+    VALUES (?, ?, ?, ?)
 ");
 
 
-$s2->bind_param("iss", $newAcctId, $fullname, $phone);
+$s2->bind_param("isss", $newAcctId, $fname, $lname, $phone);
 $s2->execute();
 
 $newCustId = $conn->insert_id;
@@ -94,10 +96,10 @@ $_SESSION['account_id']   = $newAcctId;
 $_SESSION['customer_id']  = $newCustId;
 $_SESSION['role']         = 'customer';
 $_SESSION['email']        = $email;
-$_SESSION['display_name'] = $fullname;
+$_SESSION['display_name'] = $fname . ' ' . $lname;
 $_SESSION['must_change_pw'] = false;
 
-$_SESSION['success'] = "Welcome to LandersOnline, $fullname!";
+$_SESSION['success'] = "Welcome to LandersOnline, $fname!";
 header('Location: /LandersOnline/customer/dashboard.php');
 exit();
 ?>

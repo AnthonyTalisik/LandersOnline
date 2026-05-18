@@ -19,9 +19,13 @@ $totalCusts = $conn->query("SELECT COUNT(*) c FROM Customers")->fetch_assoc()['c
 $revenue = $conn->query("SELECT IFNULL(SUM(Ord_Total),0) c FROM Orders WHERE Ord_Status='delivered'")->fetch_assoc()['c'];
 
 $recentOrders = $conn->query("
-    SELECT o.*, cu.Cust_Name FROM Orders o
+    SELECT 
+        o.*, 
+        CONCAT(cu.Cust_FName, ' ', cu.Cust_LName) AS Cust_Name
+    FROM Orders o
     JOIN Customers cu ON o.Ord_CustId = cu.Cust_Id
-    ORDER BY o.Ord_Id DESC LIMIT 8
+    ORDER BY o.Ord_Id DESC 
+    LIMIT 8
 ");
 
 $title = 'Admin Dashboard';

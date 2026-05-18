@@ -78,7 +78,7 @@ if ($acct['Acct_Role'] === 'admin') {
 } else {
 
     $cq = $conn->prepare("
-        SELECT Cust_Id, Cust_Name FROM Customers
+        SELECT Cust_Id, Cust_FName, Cust_LName FROM Customers
         WHERE  Cust_AcctId = ? LIMIT 1
     ");
     $cq->bind_param("i", $acct['Acct_Id']);
@@ -86,7 +86,7 @@ if ($acct['Acct_Role'] === 'admin') {
     $cust = $cq->get_result()->fetch_assoc();
 
     $_SESSION['customer_id']  = $cust['Cust_Id']  ?? null;
-    $_SESSION['display_name'] = $cust['Cust_Name'] ?? explode('@', $email)[0];
+    $_SESSION['display_name'] = isset($cust['Cust_FName']) ? $cust['Cust_FName'] . ' ' . $cust['Cust_LName'] : explode('@', $email)[0];
     $_SESSION['success']      = "Welcome back, " . $_SESSION['display_name'] . "!";
     header('Location: /LandersOnline/customer/dashboard.php');
     exit();

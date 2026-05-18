@@ -11,30 +11,87 @@ if (!isset($_SESSION['account_id']) || $_SESSION['role'] !== 'admin') {
 
 // ── ADD PRODUCT ──
 if (isset($_POST['add_product'])) {
+
     $name = trim($_POST['prod_name']);
     $catId = (int) $_POST['cat_id'];
     $price = (float) $_POST['price'];
     $oldPrice = $_POST['old_price'] !== '' ? (float) $_POST['old_price'] : null;
     $size = trim($_POST['size'] ?? '');
     $stock = (int) $_POST['stock'];
-    $image = trim($_POST['image_url'] ?? '');
+    $imageInput = trim($_POST['image_url'] ?? '');
+    $image = $imageInput !== '' ? '/LandersOnline/assets/images/' . $imageInput : '';
+    $brand = trim($_POST['brand'] ?? '');
+    $description = trim($_POST['desc'] ?? '');
 
     $r = $conn->query("SELECT MAX(Prod_Id) AS m FROM Products");
     $id = ($r->fetch_assoc()['m'] ?? 1000) + 1;
 
     $stmt = $conn->prepare("
-        INSERT INTO Products (Prod_Id, Prod_CatId, Prod_Name, Prod_Size, Prod_Price, Prod_OldPrice, Prod_Stock, Prod_Image, Prod_Status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
+        INSERT INTO Products (
+            Prod_Id, Prod_CatId, Prod_Name, Prod_Size,
+            Prod_Price, Prod_OldPrice, Prod_Stock, Prod_Image,
+            Prod_Brand, Prod_Desc, Prod_Status
+        )
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
     ");
-    $stmt->bind_param("iissddiis", $id, $catId, $name, $size, $price, $oldPrice, $stock, $image);
-    // Fix: correct bind
-    $stmt = $conn->prepare("
-        INSERT INTO Products (Prod_Id, Prod_CatId, Prod_Name, Prod_Size, Prod_Price, Prod_OldPrice, Prod_Stock, Prod_Image, Prod_Status)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'active')
-    ");
-    $stmt->bind_param("iissdids", $id, $catId, $name, $size, $price, $oldPrice, $stock, $image);
 
-    $_SESSION['success'] = $stmt->execute() ? "Product added!" : "Error: " . $conn->error;
+    $stmt->bind_param(
+        "iissddisss",
+        $id,
+        $catId,
+        $name,
+        $size,
+        $price,
+        $oldPrice,
+        $stock,
+        $image,
+        $brand,
+        $description
+    );
+
+    $_SESSION['success'] = $stmt->execute()
+        ? "Product added!"
+        : "Error: " . $stmt->error;
+
+    header("Location: manage_products.php");
+    exit();
+}
+
+// ── UPDATE PRODUCT ──
+if (isset($_POST['update_product'])) {
+    $pid = (int) $_POST['prod_id'];
+    $name = trim($_POST['prod_name']);
+    $catId = (int) $_POST['cat_id'];
+    $price = (float) $_POST['price'];
+    $oldPrice = ($_POST['old_price'] !== '') ? (float) $_POST['old_price'] : null;
+    $size = trim($_POST['size'] ?? '');
+    $stock = (int) $_POST['stock'];
+    $imageInput = trim($_POST['image_url'] ?? '');
+    $image = $imageInput !== '' ? '/LandersOnline/assets/images/' . $imageInput : '';
+    $brand = trim($_POST['brand'] ?? '');
+    $description = trim($_POST['description'] ?? '');
+
+    $u = $conn->prepare("
+        UPDATE Products SET
+            Prod_Name=?, Prod_CatId=?, Prod_Size=?,
+            Prod_Price=?, Prod_OldPrice=?, Prod_Stock=?,
+            Prod_Image=?, Prod_Brand=?, Prod_Desc=?
+        WHERE Prod_Id=?
+    ");
+    $u->bind_param(
+        "sisddisssi",
+        $name,
+        $catId,
+        $size,
+        $price,
+        $oldPrice,
+        $stock,
+        $image,
+        $brand,
+        $description,
+        $pid
+    );
+    $_SESSION['success'] = $u->execute() ? "Product updated!" : "Error: " . $u->error;
     header("Location: manage_products.php");
     exit();
 }
@@ -546,8 +603,20 @@ $currentPage = 'manage_products.php';
                                                     <input type="number" name="stock" value="<?= $p['Prod_Stock'] ?>"
                                                         class="landers-input" placeholder="Stock">
                                                     <input type="text" name="image_url"
-                                                        value="<?= htmlspecialchars($p['Prod_Image'] ?? '') ?>"
-                                                        class="landers-input" placeholder="Image URL">
+                                                        value="<?= htmlspecialchars(basename($p['Prod_Image'] ?? '')) ?>"
+                                                        class="landers-input" placeholder="Image.jpg">
+
+                                                    <label
+                                                        style="font-size:12px;color:var(--tm);font-weight:600;margin-top:4px;">Brand</label>
+                                                    <input type="text" name="brand"
+                                                        value="<?= htmlspecialchars($p['Prod_Brand'] ?? '') ?>"
+                                                        class="landers-input" placeholder="e.g. Nestle, Green Cross">
+
+                                                    <label
+                                                        style="font-size:12px;color:var(--tm);font-weight:600;">Description</label>
+                                                    <textarea name="description" class="landers-input" rows="3"
+                                                        style="resize:vertical;"
+                                                        placeholder="Brief product description..."><?= htmlspecialchars($p['Prod_Desc'] ?? '') ?></textarea>
                                                 </div>
                                                 <div class="modal-footer border-0">
                                                     <button type="submit" class="btn-landers-green">Update Product</button>
@@ -606,7 +675,15 @@ $currentPage = 'manage_products.php';
                         <input type="number" name="stock" value="0" class="landers-input">
 
                         <label style="font-size:12px;color:var(--tm);font-weight:600;">Image URL</label>
-                        <input type="text" name="image_url" class="landers-input" placeholder="https://...">
+                        <input type="text" name="image_url" class="landers-input" placeholder="Image.jpg">
+
+                        <label style="font-size:12px;color:var(--tm);font-weight:600;">Brand</label>
+                        <input type="text" name="brand" class="landers-input" placeholder="e.g. Nestle, Green Cross">
+
+                        <label style="font-size:12px;color:var(--tm);font-weight:600;">Description</label>
+                        <textarea name="description" class="landers-input" rows="3"
+                            placeholder="Brief product description shown on the product page..."
+                            style="resize:vertical;"></textarea>
 
                         <p style="font-size:11px;color:var(--tm);margin-top:4px;">
                             💡 Set <strong>Old Price</strong> higher than <strong>Price</strong> to show a discount

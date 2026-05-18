@@ -7,41 +7,71 @@ include "layout/layout.php";
 
 // Fetch categories
 $categories = $conn->query("SELECT * FROM Categories WHERE Cat_Status='active' ORDER BY Cat_Name ASC");
+$activeCatId = isset($_GET['cat']) ? (int) $_GET['cat'] : 0;
 
-// Fetch featured products (latest 8)
-$products = $conn->query("
-    SELECT p.*, c.Cat_Name
-    FROM Products p
-    LEFT JOIN Categories c ON p.Prod_CatId = c.Cat_Id
-    WHERE p.Prod_Status = 'active'
-    ORDER BY p.Prod_Id DESC
-    LIMIT 8
-");
+$categories = $conn->query("SELECT * FROM Categories WHERE Cat_Status='active' ORDER BY Cat_Name ASC");
+
+if ($activeCatId > 0) {
+    $stmt = $conn->prepare("
+        SELECT p.*, c.Cat_Name, c.Cat_Id
+        FROM Products p
+        LEFT JOIN Categories c ON p.Prod_CatId = c.Cat_Id
+        WHERE p.Prod_Status = 'active' AND c.Cat_Id = ?
+        ORDER BY c.Cat_Name ASC, p.Prod_Name ASC
+    ");
+    $stmt->bind_param("i", $activeCatId);
+    $stmt->execute();
+    $products = $stmt->get_result();
+} else {
+    $products = $conn->query("
+        SELECT p.*, c.Cat_Name, c.Cat_Id
+        FROM Products p
+        LEFT JOIN Categories c ON p.Prod_CatId = c.Cat_Id
+        WHERE p.Prod_Status = 'active'
+        ORDER BY c.Cat_Name ASC, p.Prod_Name ASC
+    ");
+}
+
+$activeCatName = '';
+if ($activeCatId > 0) {
+    $cr = $conn->prepare("SELECT Cat_Name FROM Categories WHERE Cat_Id=?");
+    $cr->bind_param("i", $activeCatId);
+    $cr->execute();
+    $activeCatName = $cr->get_result()->fetch_assoc()['Cat_Name'] ?? '';
+}
 ?>
 
 <div style="display:flex;max-width:1300px;margin:0 auto;padding:0 0 0 0;">
 
     <!-- ══ LEFT SIDEBAR ══ -->
     <div class="category-sidebar">
-        <?php if ($categories && $categories->num_rows > 0): ?>
-            <?php while ($cat = $categories->fetch_assoc()): ?>
-                <a href="/landersonline/customer/shop.php?cat=<?= $cat['Cat_Id'] ?>" class="cat-item">
+        <!-- "All Products" link -->
+        <a href="/LandersOnline/index.php" class="cat-item <?= $activeCatId === 0 ? 'active' : '' ?>"
+            style="<?= $activeCatId === 0 ? 'background:var(--green-bg);color:var(--green-dark);font-weight:700;' : '' ?>">
+            All Products
+            <span class="arrow"><i class="bi bi-chevron-right"></i></span>
+        </a>
+
+        <?php
+        // Rewind categories result
+        if ($categories)
+            $categories->data_seek(0);
+        if ($categories && $categories->num_rows > 0):
+            while ($cat = $categories->fetch_assoc()):
+                $isActive = ($activeCatId === (int) $cat['Cat_Id']);
+                ?>
+                <a href="/LandersOnline/index.php?cat=<?= $cat['Cat_Id'] ?>" class="cat-item <?= $isActive ? 'active' : '' ?>"
+                    style="<?= $isActive ? 'background:var(--green-bg);color:var(--green-dark);font-weight:700;border-left:3px solid var(--green-main);' : '' ?>">
                     <?= htmlspecialchars($cat['Cat_Name']) ?>
                     <span class="arrow"><i class="bi bi-chevron-right"></i></span>
                 </a>
-            <?php endwhile; ?>
-        <?php else: ?>
-            <!-- Demo categories if DB is empty -->
-            <?php foreach (['NEW! Marketplace', 'Health & Beauty', 'Food Cupboard', 'Home & Outdoor', 'Beer, Wine & Spirits', 'Beverages', 'Household & Laundry', 'Pet Care', 'Chocolates, Candies & Sweets', 'Baby, Kids & Toys', 'Fashion', 'Electronics', 'Fruits & Vegetables', 'Dairy & Chilled', 'Bakery', 'Frozen'] as $c): ?>
-                <a href="#" class="cat-item"><?= $c ?> <span class="arrow"><i class="bi bi-chevron-right"></i></span></a>
-            <?php endforeach; ?>
-        <?php endif; ?>
+            <?php endwhile; endif; ?>
     </div>
-
     <!-- ══ MAIN CONTENT ══ -->
     <div style="flex:1;padding:20px 24px;overflow:hidden;">
 
         <!-- ══ CAROUSEL ══ -->
+         
         <div style="position:relative;margin-bottom:22px;border-radius:12px;overflow:hidden;">
             <div id="promoCarousel" style="position:relative;width:100%;overflow:hidden;">
 
@@ -49,33 +79,28 @@ $products = $conn->query("
                 <div class="promo-slides">
 
                     <!-- Slide 1 — Free Delivery -->
-                    <div class="promo-slide active"
-                        style="background:url('/LandersOnline/assets/images/1.jpg');
+                    <div class="promo-slide active" style="background:url('/LandersOnline/assets/images/1.jpg');
                                 height:300px;display:flex;align-items:center;padding:0 52px;
-                                position:relative;overflow:hidden;">    
+                                position:relative;overflow:hidden;">
                     </div>
 
                     <!-- Slide 2 — Marketplace -->
-                    <div class="promo-slide"
-                        style="background:url('/LandersOnline/assets/images/2.jpg');
+                    <div class="promo-slide" style="background:url('/LandersOnline/assets/images/2.jpg');
                                 height:300px;display:flex;align-items:center;padding:0 52px;
-                                position:relative;overflow:hidden;">    
+                                position:relative;overflow:hidden;">
                     </div>
 
-                    <div class="promo-slide"
-                        style="background:url('/LandersOnline/assets/images/3.jpg');
+                    <div class="promo-slide" style="background:url('/LandersOnline/assets/images/3.jpg');
                                 height:300px;display:flex;align-items:center;padding:0 52px;
-                                position:relative;overflow:hidden;">    
+                                position:relative;overflow:hidden;">
                     </div>
-                    <div class="promo-slide"
-                        style="background:url('/LandersOnline/assets/images/4.jpg');
+                    <div class="promo-slide" style="background:url('/LandersOnline/assets/images/4.jpg');
                                 height:300px;display:flex;align-items:center;padding:0 52px;
-                                position:relative;overflow:hidden;">    
+                                position:relative;overflow:hidden;">
                     </div>
-                    <div class="promo-slide"
-                        style="background:url('/LandersOnline/assets/images/5.jpg');
+                    <div class="promo-slide" style="background:url('/LandersOnline/assets/images/5.jpg');
                                 height:300px;display:flex;align-items:center;padding:0 52px;
-                                position:relative;overflow:hidden;">    
+                                position:relative;overflow:hidden;">
                     </div>
 
                     <!--
@@ -91,24 +116,20 @@ $products = $conn->query("
                 </div><!-- /promo-slides -->
 
                 <!-- PREV / NEXT arrows -->
-                <button onclick="moveSlide(-1)"
-                        style="position:absolute;left:12px;top:50%;transform:translateY(-50%);
+                <button onclick="moveSlide(-1)" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);
                                background:rgba(0,0,0,.35);color:#fff;border:none;width:40px;height:40px;
                                border-radius:50%;font-size:18px;cursor:pointer;z-index:10;
                                display:flex;align-items:center;justify-content:center;
-                               transition:background .2s;"
-                        onmouseover="this.style.background='rgba(0,0,0,.6)'"
-                        onmouseout="this.style.background='rgba(0,0,0,.35)'">
+                               transition:background .2s;" onmouseover="this.style.background='rgba(0,0,0,.6)'"
+                    onmouseout="this.style.background='rgba(0,0,0,.35)'">
                     <i class="bi bi-chevron-left"></i>
                 </button>
-                <button onclick="moveSlide(1)"
-                        style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
+                <button onclick="moveSlide(1)" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);
                                background:rgba(0,0,0,.35);color:#fff;border:none;width:40px;height:40px;
                                border-radius:50%;font-size:18px;cursor:pointer;z-index:10;
                                display:flex;align-items:center;justify-content:center;
-                               transition:background .2s;"
-                        onmouseover="this.style.background='rgba(0,0,0,.6)'"
-                        onmouseout="this.style.background='rgba(0,0,0,.35)'">
+                               transition:background .2s;" onmouseover="this.style.background='rgba(0,0,0,.6)'"
+                    onmouseout="this.style.background='rgba(0,0,0,.35)'">
                     <i class="bi bi-chevron-right"></i>
                 </button>
 
@@ -116,24 +137,40 @@ $products = $conn->query("
                 <div style="position:absolute;bottom:12px;left:50%;transform:translateX(-50%);
                             display:flex;gap:7px;z-index:10;">
                     <button class="carousel-dot active" onclick="goSlide(0)"></button>
-                    <button class="carousel-dot"        onclick="goSlide(1)"></button>
-                    <button class="carousel-dot"        onclick="goSlide(2)"></button>
-                    <button class="carousel-dot"        onclick="goSlide(3)"></button>
-                    <button class="carousel-dot"        onclick="goSlide(4)"></button>
-                    <button class="carousel-dot"        onclick="goSlide(5)"></button>
+                    <button class="carousel-dot" onclick="goSlide(1)"></button>
+                    <button class="carousel-dot" onclick="goSlide(2)"></button>
+                    <button class="carousel-dot" onclick="goSlide(3)"></button>
+                    <button class="carousel-dot" onclick="goSlide(4)"></button>
                 </div>
             </div>
         </div>
 
         <style>
-            .promo-slides { display:flex; transition:transform .5s ease; }
-            .promo-slide  { min-width:100%; flex-shrink:0; }
-            .carousel-dot {
-                width:10px; height:10px; border-radius:50%;
-                background:rgba(255,255,255,.45); border:none; cursor:pointer;
-                padding:0; transition:background .2s, transform .2s;
+            .promo-slides {
+                display: flex;
+                transition: transform .5s ease;
             }
-            .carousel-dot.active { background:#fff; transform:scale(1.3); }
+
+            .promo-slide {
+                min-width: 100%;
+                flex-shrink: 0;
+            }
+
+            .carousel-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, .45);
+                border: none;
+                cursor: pointer;
+                padding: 0;
+                transition: background .2s, transform .2s;
+            }
+
+            .carousel-dot.active {
+                background: #fff;
+                transform: scale(1.3);
+            }
         </style>
 
         <script>
@@ -183,6 +220,7 @@ $products = $conn->query("
             <?php if ($products && $products->num_rows > 0): ?>
                 <?php while ($prod = $products->fetch_assoc()): ?>
                     <div class="product-card">
+                        <a href="/LandersOnline/public/products.php?id=<?= $prod['Prod_Id'] ?>" style="text-decoration:none;color:inherit;">
                         <div style="height:24px; padding:8px 10px 0;">
                             <?php if ($prod['Prod_OldPrice'] && $prod['Prod_OldPrice'] > $prod['Prod_Price']): ?>
                                 <?php $disc = round((1 - $prod['Prod_Price'] / $prod['Prod_OldPrice']) * 100); ?>
@@ -216,51 +254,13 @@ $products = $conn->query("
                                 <button type="submit" class="btn-add-cart">ADD TO CART</button>
                             </form>
                         </div>
+                        </a>
                     </div>
                 <?php endwhile; ?>
 
             <?php else: ?>
                 <!-- Demo cards when DB is empty -->
-                <?php
-                $demos = [
-                    ['Nutella Ice Cream Pint 470mL', '470mL', '520.95', null],
-                    ['Siviero Maria Blueberry Cheesecake Gelato 1L', '1L/500g', '229.95', '312.95', 27],
-                    ['Haagen-Dazs Belgian Chocolate 460mL', '460mL', '352.95', '468.95', 25],
-                    ['San Miguel Pale Pilsen 330mL', '330mL', '52.00', null],
-                    ['Kirkland Signature Coffee 1.13kg', '1.13kg', '899.00', '1100.00', 18],
-                    ['Tide Detergent Powder 3.8kg', '3.8kg', '349.75', null],
-                    ['Pedigree Dog Food 3kg', '3kg', '445.00', '520.00', 14],
-                    ['Energizer AA Batteries 24pk', '24pk', '399.00', null],
-                ];
-                foreach ($demos as $i => $d):
-                    $disc = isset($d[4]) ? $d[4] : null;
-                    ?>
-                    <div class="product-card">
-
-                        <div style="height:160px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;">
-                            <i class="bi bi-box-seam" style="font-size:48px;color:#ccc;"></i>
-                        </div>
-                        <div style="height:24px; padding:8px 10px 0;">
-                            <?php if ($disc): ?>
-                                <span class="badge-discount"><?= $disc ?>% OFF</span>
-                            <?php endif; ?>
-                        </div>
-                        <div class="card-body">
-                            <div class="prod-name"><?= $d[0] ?></div>
-                            <div class="prod-sub"><?= $d[1] ?></div>
-                            <div style="color:#f5a623;font-size:11px;margin-bottom:6px;">
-                                &#9733;&#9733;&#9733;&#9733;&#9733; <span style="color:#aaa;">(0)</span>
-                            </div>
-                            <div style="margin-bottom:10px;">
-                                <span class="prod-price">₱<?= $d[2] ?></span>
-                                <?php if ($d[3]): ?>
-                                    <span class="prod-old-price">₱<?= $d[3] ?></span>
-                                <?php endif; ?>
-                            </div>
-                            <button class="btn-add-cart" onclick="alert('Please log in to add to cart.')">ADD TO CART</button>
-                        </div>
-                    </div>
-                <?php endforeach; ?>
+                
             <?php endif; ?>
 
         </div>

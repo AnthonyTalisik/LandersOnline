@@ -1,0 +1,62 @@
+--- USERS ---
+Customer 1
+Email: ashley.reyes01@landers.ph
+First Name: Ashley
+Last Name: Reyes
+Phone: 09171234567
+Password: AshReyes123
+Confirm Password: AshReyes123
+
+Customer 2
+Email: mark.delacruz02@landers.ph
+First Name: Mark
+Last Name: De la Cruz
+Phone: 09182345678
+Password: MarkDLC2024
+Confirm Password: MarkDLC2024
+
+Customer 3
+Email: julia.santos03@landers.ph
+First Name: Julia
+Last Name: Santos
+Phone: 09223456789
+Password: JuliaSantos88
+Confirm Password: JuliaSantos88
+
+Customer 4
+Email: miguel.fernandez04@landers.ph
+First Name: Miguel
+Last Name: Fernandez
+Phone: 09194567812
+Password: MiguelF2025
+Confirm Password: MiguelF2025
+
+Customer 5
+Email: danica.cruz05@landers.ph
+First Name: Danica
+Last Name: Cruz
+Phone: 09331234567
+Password: DanicaCruz123
+Confirm Password: DanicaCruz123
+
+
+--- ADMIN ---
+Admin 1
+Email: Ashley@admin1.ph
+Password: Admin123
+
+Change Password: Ashley123
+
+Admin 2
+Email: Bryan@admin2.ph
+Password: Admin123
+
+Change Password: Bryan123
+
+Admin 3
+Email: Carla@admin3.ph
+Password: Admin123
+
+Change Password: Carla123
+
+
