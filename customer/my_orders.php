@@ -52,6 +52,21 @@ while ($r = $result->fetch_assoc()) {
 }
 $totalOrders = array_sum($statusCounts);
 
+function productImageSrc($image)
+{
+    $image = trim((string) $image);
+
+    if ($image === '') {
+        return '/LandersOnline/assets/images/no-image.png';
+    }
+
+    if (preg_match('#^https?://#i', $image) || strpos($image, '/') === 0) {
+        return $image;
+    }
+
+    return '/LandersOnline/assets/images/' . ltrim($image, '/');
+}
+
 $title = "My Orders";
 include "../layout/layout.php";
 ?>
@@ -212,11 +227,9 @@ include "../layout/layout.php";
                 <div style="display:flex;align-items:center;gap:12px;
                             <?= $idx > 0 ? 'margin-top:10px;padding-top:10px;border-top:1px solid #f5f5f5;' : '' ?>">
                     <?php
-                    $imgSrc = !empty($item['Prod_Image'])
-                        ? '/LandersOnline/' . htmlspecialchars($item['Prod_Image'])
-                        : '/LandersOnline/assets/images/no-image.png';
+                    $imgSrc = productImageSrc($item['Prod_Image']);
                     ?>
-                    <img src="<?= $imgSrc ?>"
+                    <img src="<?= htmlspecialchars($imgSrc) ?>"
                          style="width:50px;height:50px;object-fit:contain;background:#f8f8f8;
                                 border-radius:8px;border:1px solid #eee;padding:3px;flex-shrink:0;"
                          onerror="this.src='/LandersOnline/assets/images/no-image.png'">

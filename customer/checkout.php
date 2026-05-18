@@ -32,6 +32,21 @@ while ($row = $cartResult->fetch_assoc()) {
     $subtotal   += $row['Prod_Price'] * $row['Cart_Qty'];
 }
 
+function productImageSrc($image)
+{
+    $image = trim((string) $image);
+
+    if ($image === '') {
+        return '/LandersOnline/assets/images/no-image.png';
+    }
+
+    if (preg_match('#^https?://#i', $image) || strpos($image, '/') === 0) {
+        return $image;
+    }
+
+    return '/LandersOnline/assets/images/' . ltrim($image, '/');
+}
+
 // Redirect back if cart is empty
 if (empty($cartItems)) {
     $_SESSION['error'] = "Your cart is empty.";
@@ -215,7 +230,7 @@ include "../layout/layout.php";
                 <?php foreach ($cartItems as $item): ?>
                 <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
                     <?php if (!empty($item['Prod_Image'])): ?>
-                    <img src="/LandersOnline/<?= htmlspecialchars($item['Prod_Image']) ?>"
+                    <img src="<?= htmlspecialchars(productImageSrc($item['Prod_Image'])) ?>"
                          style="width:46px;height:46px;object-fit:contain;background:#f5f5f5;
                                 border-radius:6px;border:1px solid #eee;padding:3px;flex-shrink:0;"
                          onerror="this.src='/LandersOnline/assets/images/no-image.png'">

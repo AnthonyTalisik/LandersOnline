@@ -77,6 +77,21 @@ $items = $cartItems->get_result();
 
 $grandTotal = 0;
 
+function productImageSrc($image)
+{
+    $image = trim((string) $image);
+
+    if ($image === '') {
+        return '/LandersOnline/assets/images/no-image.png';
+    }
+
+    if (preg_match('#^https?://#i', $image) || strpos($image, '/') === 0) {
+        return $image;
+    }
+
+    return '/LandersOnline/assets/images/' . ltrim($image, '/');
+}
+
 $title = "My Cart";
 include "../layout/layout.php";
 ?>
@@ -102,7 +117,7 @@ include "../layout/layout.php";
                         ?>
                         <div
                             style="display:flex;align-items:center;gap:16px;padding:16px;border-bottom:1px solid var(--border);">
-                            <img src="<?= !empty($item['Prod_Image']) ? '/LandersOnline/' . htmlspecialchars($item['Prod_Image']) : '/LandersOnline/assets/images/no-image.png' ?>"
+                            <img src="<?= htmlspecialchars(productImageSrc($item['Prod_Image'])) ?>"
                                 style="width:70px;height:70px;object-fit:contain;background:#fafafa;border-radius:8px;padding:4px;"
                                 onerror="this.src='/LandersOnline/assets/images/no-image.png'">
 
