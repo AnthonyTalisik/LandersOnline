@@ -59,4 +59,129 @@ Password: Admin123
 
 Change Password: Carla123
 
+--- Products ---
+Name: Nestle All-Purpose Cream
+Category: Bakery
+Size / Unit: 250mL
+Price (₱): 69.75
+Old Price – for discount (₱):
+Image URL: all purpose.jpg
+Brand: Nestle
+Description: Nestle All-Purpose Cream is your versatile kitchen companion, perfect for adding a creamy touch to both sweet and savory dishes. With its smooth consistency and delightful taste, this cream can be whipped into soft peaks, making your culinary creations even more exciting. Ideal for professional chefs and home cooks alike.
+
+UHT processed for long shelf life
+Creamy, rich taste for sweet and savory dishes
+Easy to whip for swirls, dollops and soft peaks
+Storage Instructions:  Once opened, keep sealed or transfer to a sealed container and keep refrigerated.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Name: Green Cross 70% Solution Ethyl Alcohol
+Category: Health & Beauty
+Size / Unit: 1L
+Price (₱): 210.95
+Old Price – for discount (₱): 221.95
+Image URL: alcohol.jpg
+Brand: Green Cross
+Description: Green Cross provides everyday, accessible disinfecting with its range of isopropyl- and ethyl-based rubbing alcohols. 99.9% effective against bacteria and viruses. Green Cross Alcohol also has moisturizing variants to prevent skin dryness.
+
+99.9% effective against bacteria and viruses
+70% solution antiseptic disinfectant
+Application: For disinfection, sterilization, body massage, relief of prickly heat, insect bites, hygienic purposes, after she and general antiseptic use in hospitals and homes.
+
+Directions: Apply on hands or use cotton and rub liberally on the skin.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Name: Nature's Spring Distilled Drinking Water 2 x
+Category: Beverages
+Size / Unit: 10L
+Price (₱): 180.50
+Old Price – for discount (₱): 189.95
+Image URL: nature spring.jpg
+Brand: Nature's Spring
+Description: Nature's Spring Distilled Drinking Water is the mothers' go-to water brand and is recommended by Pediatricians due to its quality, purity, safety and affordability. It undergoes a 12-stage process with different levels of filtration, purification and distillation processes to remove impurities using state-of-the-art facilities.
+High-quality, pure, safe and affordable distilled water
+Undergoes a 12-stage filtration, purification and distillation process
+Processed using state-of-the-art facilities
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Name: Cherifer Forte Syrup with Zinc
+Category: Health & Beauty
+Size / Unit: 240ml
+Price (₱): 416.60
+Old Price – for discount (₱): 429.50
+Image URL: cherifer.jpg
+Brand: Cherifer
+Description: Cgf + Lysine Hydrochloride + Multivitamins + Taurine + Zinc
+
+Sold per: Bottle
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Name: Zonrox ColorSafe Blossom Fresh Bleach
+Category: Household & Laundry
+Size / Unit: 900mL
+Price (₱): 71.25
+Old Price – for discount (₱): 
+Image URL: zonrox.jpg
+Brand: Zonrox
+Description: Zonrox Color-Safe Blossom Fresh Bleach is your ultimate solution for keeping colored clothes vibrant and stain-free. Formulated with Oxygen Bleach and active cleaning bubbles, it gently cleans while effectively removing tough stains like grease, makeup, coffee and chocolate. This bleach not only protects colors and prevents fading but also shortens your cleaning time, ensuring your laundry looks brand new after every wash.
+
+Contains Oxygen Bleach for gentle cleaning of colored fabrics
+Effectively removes tough stains like grease and coffee
+Protects colors and prevents fading for longer-lasting brightness
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Name: Ganador Oliver Well Milled Rice
+Category: Food cupboard
+Size / Unit: 5kg
+Price (₱): 382.95
+Old Price – for discount (₱): 
+Image URL: ganador.jpg
+Brand: Ganador
+Description: Ganador Oliver Well Milled Rice 5kg
+
+Milled rice could essentially be called white rice. Unlike typical brown rice, which has only the husk removed, it also has the rice bran layer and the germ of the rice removed. This tends to make for fluffier rice, which is usually white to light yellow in color, and is not quite as high in nutritional content.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Name: Nestle Cerelac Rice & Veggies Homestyle  Meals
+Category: Baby, kids
+Size / Unit: 200g
+Price (₱): 186.95
+Old Price – for discount (₱): 206.95
+Image URL: cerelac.png
+Brand: Nestle
+Description: Cerelac Homestyle Meals Rice & Veggies is made with carefully selected rice, & veggies, high source of iron, and 19 vitamins and minerals.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Name: Nestle Nesquik Cacao Powder Drink
+Category: Beverage
+Size / Unit: 700g
+Price (₱): 712.50
+Old Price – for discount (₱): 749.95
+Image URL: nesquik.jpg
+Brand: Nestle
+Description: Enjoy the delicious taste of Nestle Nesquik Cacao Powder Drink. This product is Rainforest Alliance-certified and made with sustainably sourced cacao. It is a good source of vitamin D and it's gluten-free!
+
+Sustainably sourced cacao
+Source of vitamin D
+Gluten-free
+Rainforest Alliance-certified
+Ingredients: Sugar, Degreased Natural Cocoa In Octopus¹ (23%), Emulsifier (Soy Lecithin), Salt, Vitamins (C, D), Natural Flavor, Cinnamon.
+
+Directions: Add 2 heaping teaspoons of Nesquik to 200mL of hot or cold semi-skimmed milk, stir and enjoy.
+
+Storage Instructions: Store in a cool, dry place, away from intense odors.
+-----------------------------------------------------------------------------------------------------------------------------------------------------------
+Name: Up Lemon Bathroom Cleaner
+Category: Household
+Size / Unit: 750mL
+Price (₱): 149.95
+Old Price – for discount (₱): 262.50
+Image URL: uplemon.jpg
+Brand: Up
+Description: Up Lemon Bathroom Cleaner brings the power of a thorough clean combined with a refreshing lemon scent. This bathroom cleaner is designed to deeply cleanse all surfaces, leaving your bathroom spotless and smelling fresh. Its versatile formula is suitable for a variety of surfaces, including tiles, grout and fixtures. Up Lemon Bathroom Cleaner effectively removes molds and mildew stains, ensuring a hygienic and sparkling clean bathroom.
+
+Bathroom cleaner with lemon scent
+Deeply cleans all surfaces
+Suitable for a variety of surfaces
+Effectively removes molds and mildew stains
+Ingredients: Aqua, <5% Anionic Surfactant, Nonionic Surfactant, D-Limonene.
+
+Directions for Use: Spray cleaner to lime, rust, dirt and stains. Clean and rinse after a few seconds. For brighter results, wipe the cleaned surface with a dry cloth.
+
+Storage Instructions: Store in a tightly closed original container, in a dry and cool place. Protect from direct sunlight. Keep away from food, drink, and animal feeding stuff. Keep the container upright.
+
+Caution: Keep out of reach of children. Wear protective gloves. Dispose of contents/container in accordance with national regulations. DANGER: Causes severe skin burns and eye damage.
 
