@@ -2,6 +2,8 @@
 ob_start();
 session_start();
 require_once '../config/db.php';
+require_once '../config/firebase_store.php';
+$store = firebaseStore();
 
 if (!isset($_SESSION['account_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: /LandersOnline/index.php');
@@ -9,24 +11,17 @@ if (!isset($_SESSION['account_id']) || $_SESSION['role'] !== 'admin') {
 }
 
 // ── STATS ──
-$totalProds = $conn->query("SELECT COUNT(*) c FROM Products WHERE Prod_Status='active'")->fetch_assoc()['c'];
-$outOfStock = $conn->query("SELECT COUNT(*) c FROM Products WHERE Prod_Status='active' AND Prod_Stock=0")->fetch_assoc()['c'];
-$lowStock = $conn->query("SELECT COUNT(*) c FROM Products WHERE Prod_Status='active' AND Prod_Stock>0 AND Prod_Stock<=5")->fetch_assoc()['c'];
-$totalCats = $conn->query("SELECT COUNT(*) c FROM Categories WHERE Cat_Status='active'")->fetch_assoc()['c'];
-$totalOrders = $conn->query("SELECT COUNT(*) c FROM Orders")->fetch_assoc()['c'];
-$pendOrders = $conn->query("SELECT COUNT(*) c FROM Orders WHERE Ord_Status='pending'")->fetch_assoc()['c'];
-$totalCusts = $conn->query("SELECT COUNT(*) c FROM Customers")->fetch_assoc()['c'];
-$revenue = $conn->query("SELECT IFNULL(SUM(Ord_Total),0) c FROM Orders WHERE Ord_Status='delivered'")->fetch_assoc()['c'];
-
-$recentOrders = $conn->query("
-    SELECT 
-        o.*, 
-        CONCAT(cu.Cust_FName, ' ', cu.Cust_LName) AS Cust_Name
-    FROM Orders o
-    JOIN Customers cu ON o.Ord_CustId = cu.Cust_Id
-    ORDER BY o.Ord_Id DESC 
-    LIMIT 8
-");
+$activeProducts = $store->productsWithCategory(0, true)->fetch_all();
+$allOrders = $store->orders()->fetch_all();
+$totalProds = count($activeProducts);
+$outOfStock = count(array_filter($activeProducts, fn($p) => (int)($p['Prod_Stock'] ?? 0) === 0));
+$lowStock = count(array_filter($activeProducts, fn($p) => (int)($p['Prod_Stock'] ?? 0) > 0 && (int)($p['Prod_Stock'] ?? 0) <= 5));
+$totalCats = $store->categories(true)->num_rows;
+$totalOrders = count($allOrders);
+$pendOrders = count(array_filter($allOrders, fn($o) => ($o['Ord_Status'] ?? '') === 'pending'));
+$totalCusts = $store->customers()->num_rows;
+$revenue = array_sum(array_map(fn($o) => ($o['Ord_Status'] ?? '') === 'delivered' ? (float)($o['Ord_Total'] ?? 0) : 0, $allOrders));
+$recentOrders = $store->result(array_slice($allOrders, 0, 8));
 
 $title = 'Admin Dashboard';
 $currentPage = 'dashboard.php';

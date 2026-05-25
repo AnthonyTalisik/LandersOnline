@@ -2,6 +2,8 @@
 ob_start();
 session_start();
 require_once '../config/db.php';
+require_once '../config/firebase_store.php';
+$store = firebaseStore();
 
 if (!isset($_SESSION['account_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: /LandersOnline/index.php');
@@ -21,37 +23,20 @@ if (isset($_POST['add_product'])) {
     $imageInput = trim($_POST['image_url'] ?? '');
     $image = $imageInput !== '' ? '/LandersOnline/assets/images/' . $imageInput : '';
     $brand = trim($_POST['brand'] ?? '');
-    $description = trim($_POST['desc'] ?? '');
+    $description = trim($_POST['description'] ?? '');
 
-    $r = $conn->query("SELECT MAX(Prod_Id) AS m FROM Products");
-    $id = ($r->fetch_assoc()['m'] ?? 1000) + 1;
-
-    $stmt = $conn->prepare("
-        INSERT INTO Products (
-            Prod_Id, Prod_CatId, Prod_Name, Prod_Size,
-            Prod_Price, Prod_OldPrice, Prod_Stock, Prod_Image,
-            Prod_Brand, Prod_Desc, Prod_Status
-        )
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')
-    ");
-
-    $stmt->bind_param(
-        "iissddisss",
-        $id,
-        $catId,
-        $name,
-        $size,
-        $price,
-        $oldPrice,
-        $stock,
-        $image,
-        $brand,
-        $description
-    );
-
-    $_SESSION['success'] = $stmt->execute()
-        ? "Product added!"
-        : "Error: " . $stmt->error;
+    $store->addProduct([
+        'Prod_CatId' => $catId,
+        'Prod_Name' => $name,
+        'Prod_Size' => $size,
+        'Prod_Price' => $price,
+        'Prod_OldPrice' => $oldPrice,
+        'Prod_Stock' => $stock,
+        'Prod_Image' => $image,
+        'Prod_Brand' => $brand,
+        'Prod_Desc' => $description,
+    ]);
+    $_SESSION['success'] = "Product added!";
 
     header("Location: manage_products.php");
     exit();
@@ -71,27 +56,18 @@ if (isset($_POST['update_product'])) {
     $brand = trim($_POST['brand'] ?? '');
     $description = trim($_POST['description'] ?? '');
 
-    $u = $conn->prepare("
-        UPDATE Products SET
-            Prod_Name=?, Prod_CatId=?, Prod_Size=?,
-            Prod_Price=?, Prod_OldPrice=?, Prod_Stock=?,
-            Prod_Image=?, Prod_Brand=?, Prod_Desc=?
-        WHERE Prod_Id=?
-    ");
-    $u->bind_param(
-        "sisddisssi",
-        $name,
-        $catId,
-        $size,
-        $price,
-        $oldPrice,
-        $stock,
-        $image,
-        $brand,
-        $description,
-        $pid
-    );
-    $_SESSION['success'] = $u->execute() ? "Product updated!" : "Error: " . $u->error;
+    $store->updateProduct($pid, [
+        'Prod_Name' => $name,
+        'Prod_CatId' => $catId,
+        'Prod_Size' => $size,
+        'Prod_Price' => $price,
+        'Prod_OldPrice' => $oldPrice,
+        'Prod_Stock' => $stock,
+        'Prod_Image' => $image,
+        'Prod_Brand' => $brand,
+        'Prod_Desc' => $description,
+    ]);
+    $_SESSION['success'] = "Product updated!";
     header("Location: manage_products.php");
     exit();
 }
@@ -99,14 +75,7 @@ if (isset($_POST['update_product'])) {
 // ── TOGGLE STATUS ──
 if (isset($_GET['toggle'])) {
     $pid = (int) $_GET['toggle'];
-    $r = $conn->prepare("SELECT Prod_Status FROM Products WHERE Prod_Id=?");
-    $r->bind_param("i", $pid);
-    $r->execute();
-    $cur = $r->get_result()->fetch_assoc()['Prod_Status'];
-    $new = $cur === 'active' ? 'inactive' : 'active';
-    $upd = $conn->prepare("UPDATE Products SET Prod_Status=? WHERE Prod_Id=?");
-    $upd->bind_param("si", $new, $pid);
-    $upd->execute();
+    $store->toggleProduct($pid);
     $_SESSION['success'] = "Product status updated.";
     header("Location: manage_products.php");
     exit();
@@ -115,21 +84,14 @@ if (isset($_GET['toggle'])) {
 // ── DELETE PRODUCT ──
 if (isset($_GET['delete'])) {
     $pid = (int) $_GET['delete'];
-    $stmt = $conn->prepare("DELETE FROM Products WHERE Prod_Id=?");
-    $stmt->bind_param("i", $pid);
-    $stmt->execute();
+    $store->deleteProduct($pid);
     $_SESSION['success'] = "Product deleted.";
     header("Location: manage_products.php");
     exit();
 }
 
-$categories = $conn->query("SELECT * FROM Categories WHERE Cat_Status='active' ORDER BY Cat_Name");
-$products = $conn->query("
-    SELECT p.*, c.Cat_Name
-    FROM Products p
-    LEFT JOIN Categories c ON p.Prod_CatId = c.Cat_Id
-    ORDER BY p.Prod_Id DESC
-");
+$categories = $store->categories(true);
+$products = $store->productsWithCategory();
 $title = 'Manage Products';
 $currentPage = 'manage_products.php';
 ?>

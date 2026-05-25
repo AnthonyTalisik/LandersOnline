@@ -1,0 +1,7 @@
+"Acct_Id","Acct_Email","Acct_Password","Acct_Role","Acct_Status","Acct_MustChangePw","Acct_CreatedAt","Cust_Id","Cust_FName","Cust_LName","Cust_Phone"
+"4","ashley.reyes01@landers.ph","$2y$10$ocvzsXU./5SHNeQBWCGWnuXEilSGzO0T3OYr53zWg.9l3igYhYGAi","customer","active","0","2026-05-18 16:29:29","1","Ashley","Reyes","09171234567"
+"5","mark.delacruz02@landers.ph","$2y$10$3adtlsm.g4t7OwGOaitnruT332D0H/wWpJaJwKr3SyzkpddtJAmWC","customer","active","0","2026-05-19 00:43:45","2","Mark","De la Cruz","09182345678"
+"6","julia.santos03@landers.ph","$2y$10$XbyS7DdXQwZzFYi5dt3uA.Y2GbDkKVUeT6c/snkwCg.GGEsC4UVCG","customer","active","0","2026-05-21 21:31:17","3","Julia","Santos","09223456789"
+"7","Ashley@admin1.ph","Admin123","admin","active","1","2026-05-23 22:33:43",\N,\N,\N,\N
+"8","Bryan@admin2.ph","Admin123","admin","active","1","2026-05-23 22:33:43",\N,\N,\N,\N
+"9","Carla@admin3.ph","Admin123","admin","active","1","2026-05-23 22:33:43",\N,\N,\N,\N

@@ -1,6 +1,8 @@
-<?php
+﻿<?php
 session_start();
 require_once "../config/db.php";
+require_once "../config/firebase_store.php";
+$store = firebaseStore();
 
 if (!isset($_SESSION['account_id']) || $_SESSION['role'] !== 'customer') {
     $_SESSION['open_modal'] = 'login';
@@ -13,42 +15,15 @@ $custId = $_SESSION['customer_id'];
 
 // ── FILTERS ──
 $statusFilter = $_GET['status'] ?? '';
-$where  = "WHERE o.Ord_AcctId = ?";
-$params = [$acctId];
-$types  = "i";
-if ($statusFilter !== '') {
-    $where  .= " AND o.Ord_Status = ?";
-    $params[] = $statusFilter;
-    $types   .= "s";
-}
 
 // ── LOAD ORDERS ──
-$ordQ = $conn->prepare("
-    SELECT o.*,
-           COUNT(oi.OrdItem_Id)          AS item_count,
-           SUM(oi.OrdItem_Qty)           AS total_qty
-    FROM Orders o
-    LEFT JOIN OrderItems oi ON oi.OrdItem_OrdId = o.Ord_Id
-    $where
-    GROUP BY o.Ord_Id
-    ORDER BY o.Ord_Id DESC
-");
-$ordQ->bind_param($types, ...$params);
-$ordQ->execute();
-$orders = $ordQ->get_result();
+$orders = $store->orders($statusFilter, $acctId);
 
 // ── COUNT PER STATUS ──
-$countQ = $conn->prepare("
-    SELECT Ord_Status, COUNT(*) AS cnt
-    FROM Orders WHERE Ord_AcctId = ?
-    GROUP BY Ord_Status
-");
-$countQ->bind_param("i", $acctId);
-$countQ->execute();
 $statusCounts = [];
-$result = $countQ->get_result();
-while ($r = $result->fetch_assoc()) {
-    $statusCounts[$r['Ord_Status']] = $r['cnt'];
+foreach ($store->orders('', $acctId)->fetch_all() as $r) {
+    $status = $r['Ord_Status'] ?? 'pending';
+    $statusCounts[$status] = ($statusCounts[$status] ?? 0) + 1;
 }
 $totalOrders = array_sum($statusCounts);
 
@@ -137,17 +112,7 @@ include "../layout/layout.php";
                 default      => 'bi-circle',
             };
 
-            // Load items for this order
-            $itemQ = $conn->prepare("
-                SELECT oi.*, p.Prod_Image
-                FROM OrderItems oi
-                LEFT JOIN Products p ON oi.OrdItem_ProdId = p.Prod_Id
-                WHERE oi.OrdItem_OrdId = ?
-                ORDER BY oi.OrdItem_Id ASC
-            ");
-            $itemQ->bind_param("i", $ord['Ord_Id']);
-            $itemQ->execute();
-            $items = $itemQ->get_result()->fetch_all(MYSQLI_ASSOC);
+            $items = $store->orderItems($ord)->fetch_all();
         ?>
 
         <div style="background:#fff;border:1px solid #dde8cc;border-radius:12px;

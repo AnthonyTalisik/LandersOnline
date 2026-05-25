@@ -2,6 +2,8 @@
 ob_start();
 session_start();
 require_once '../config/db.php';
+require_once '../config/firebase_store.php';
+$store = firebaseStore();
 
 if (!isset($_SESSION['account_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: /LandersOnline/index.php');
@@ -12,22 +14,14 @@ if (!isset($_SESSION['account_id']) || $_SESSION['role'] !== 'admin') {
 if (isset($_POST['add_category'])) {
     $name = trim($_POST['cat_name']);
 
-    $check = $conn->prepare("SELECT Cat_Id FROM Categories WHERE Cat_Name=?");
-    $check->bind_param("s", $name);
-    $check->execute();
-    $check->store_result();
-    if ($check->num_rows > 0) {
+    if ($store->categoryExistsByName($name)) {
         $_SESSION['error'] = "Category '$name' already exists.";
         header('Location: manage_categories.php');
         exit();
     }
 
-    $r = $conn->query("SELECT MAX(Cat_Id) AS m FROM Categories");
-    $id = ($r->fetch_assoc()['m'] ?? 100) + 1;
-
-    $stmt = $conn->prepare("INSERT INTO Categories (Cat_Id, Cat_Name, Cat_Status) VALUES (?,?,'active')");
-    $stmt->bind_param("is", $id, $name);
-    $_SESSION['success'] = $stmt->execute() ? "Category added!" : "Error: " . $conn->error;
+    $store->addCategory($name);
+    $_SESSION['success'] = "Category added!";
     header('Location: manage_categories.php');
     exit();
 }
@@ -36,9 +30,8 @@ if (isset($_POST['add_category'])) {
 if (isset($_POST['update_category'])) {
     $id = (int) $_POST['cat_id'];
     $name = trim($_POST['cat_name']);
-    $stmt = $conn->prepare("UPDATE Categories SET Cat_Name=? WHERE Cat_Id=?");
-    $stmt->bind_param("si", $name, $id);
-    $_SESSION['success'] = $stmt->execute() ? "Category updated!" : "Error: " . $conn->error;
+    $store->updateCategory($id, $name);
+    $_SESSION['success'] = "Category updated!";
     header('Location: manage_categories.php');
     exit();
 }
@@ -46,25 +39,13 @@ if (isset($_POST['update_category'])) {
 // ── TOGGLE STATUS ──
 if (isset($_GET['toggle'])) {
     $id = (int) $_GET['toggle'];
-    $r = $conn->prepare("SELECT Cat_Status FROM Categories WHERE Cat_Id=?");
-    $r->bind_param("i", $id);
-    $r->execute();
-    $cur = $r->get_result()->fetch_assoc()['Cat_Status'];
-    $new = $cur === 'active' ? 'inactive' : 'active';
-    $upd = $conn->prepare("UPDATE Categories SET Cat_Status=? WHERE Cat_Id=?");
-    $upd->bind_param("si", $new, $id);
-    $upd->execute();
+    $store->toggleCategory($id);
     $_SESSION['success'] = "Category status updated.";
     header('Location: manage_categories.php');
     exit();
 }
 
-$categories = $conn->query("
-    SELECT c.*, COUNT(p.Prod_Id) AS prod_count
-    FROM Categories c
-    LEFT JOIN Products p ON p.Prod_CatId = c.Cat_Id AND p.Prod_Status='active'
-    GROUP BY c.Cat_Id ORDER BY c.Cat_Id DESC
-");
+$categories = $store->categoriesWithProductCount();
 
 $title = 'Manage Categories';
 $currentPage = 'manage_categories.php';

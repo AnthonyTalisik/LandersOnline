@@ -2,31 +2,20 @@
 ob_start();
 session_start();
 require_once '../config/db.php';
+require_once '../config/firebase_store.php';
+$store = firebaseStore();
 if (!isset($_SESSION['account_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: /LandersOnline/index.php'); exit();
 }
 
 if (isset($_GET['toggle'])) {
-    $id = (int)$_GET['toggle'];
-    $r  = $conn->prepare("SELECT Acct_Status FROM Accounts WHERE Acct_Id=?");
-    $r->bind_param("i",$id); $r->execute();
-    $cur = $r->get_result()->fetch_assoc()['Acct_Status'];
-    $new = $cur==='active' ? 'inactive' : 'active';
-    $u   = $conn->prepare("UPDATE Accounts SET Acct_Status=? WHERE Acct_Id=?");
-    $u->bind_param("si",$new,$id); $u->execute();
-    $_SESSION['success'] = "Customer account ".ucfirst($new).".";
+    $id = (string)$_GET['toggle'];
+    $store->toggleCustomer($id);
+    $_SESSION['success'] = "Customer account status updated.";
     header('Location: manage_customers.php'); exit();
 }
 
-$customers = $conn->query("
-    SELECT c.*, a.Acct_Email, a.Acct_Status, a.Acct_CreatedAt,
-           COUNT(o.Ord_Id) AS total_orders,
-           IFNULL(SUM(o.Ord_Total),0) AS total_spent
-    FROM Customers c
-    JOIN Accounts a ON c.Cust_AcctId=a.Acct_Id
-    LEFT JOIN Orders o ON o.Ord_CustId=c.Cust_Id AND o.Ord_Status='delivered'
-    GROUP BY c.Cust_Id ORDER BY a.Acct_CreatedAt DESC
-");
+$customers = $store->customers();
 
 $title = 'Manage Customers';
 $currentPage = 'manage_customers.php';

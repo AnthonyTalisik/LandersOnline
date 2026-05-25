@@ -1,43 +1,20 @@
 <?php
 session_start();
 require_once "config/db.php";
+require_once "config/firebase_store.php";
+$store = firebaseStore();
 
 $title = "LandersOnline - Shop Online";
 include "layout/layout.php";
 
-// Fetch categories
-$categories = $conn->query("SELECT * FROM Categories WHERE Cat_Status='active' ORDER BY Cat_Name ASC");
 $activeCatId = isset($_GET['cat']) ? (int) $_GET['cat'] : 0;
 
-$categories = $conn->query("SELECT * FROM Categories WHERE Cat_Status='active' ORDER BY Cat_Name ASC");
-
-if ($activeCatId > 0) {
-    $stmt = $conn->prepare("
-        SELECT p.*, c.Cat_Name, c.Cat_Id
-        FROM Products p
-        LEFT JOIN Categories c ON p.Prod_CatId = c.Cat_Id
-        WHERE p.Prod_Status = 'active' AND c.Cat_Id = ?
-        ORDER BY c.Cat_Name ASC, p.Prod_Name ASC
-    ");
-    $stmt->bind_param("i", $activeCatId);
-    $stmt->execute();
-    $products = $stmt->get_result();
-} else {
-    $products = $conn->query("
-        SELECT p.*, c.Cat_Name, c.Cat_Id
-        FROM Products p
-        LEFT JOIN Categories c ON p.Prod_CatId = c.Cat_Id
-        WHERE p.Prod_Status = 'active'
-        ORDER BY c.Cat_Name ASC, p.Prod_Name ASC
-    ");
-}
+$categories = $store->categories(true);
+$products = $store->productsWithCategory($activeCatId, true);
 
 $activeCatName = '';
 if ($activeCatId > 0) {
-    $cr = $conn->prepare("SELECT Cat_Name FROM Categories WHERE Cat_Id=?");
-    $cr->bind_param("i", $activeCatId);
-    $cr->execute();
-    $activeCatName = $cr->get_result()->fetch_assoc()['Cat_Name'] ?? '';
+    $activeCatName = $store->categoryNameById($activeCatId);
 }
 ?>
 

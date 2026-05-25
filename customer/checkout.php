@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once "../config/db.php";
+require_once "../config/firebase_store.php";
+$store = firebaseStore();
 
 // Must be logged in as customer
 if (!isset($_SESSION['account_id']) || $_SESSION['role'] !== 'customer') {
@@ -13,17 +15,7 @@ $acctId = $_SESSION['account_id'];
 $custId = $_SESSION['customer_id'];
 
 // ── LOAD CART ──────────────────────────────────────────────────────
-$cartQ = $conn->prepare("
-    SELECT c.Cart_Id, c.Cart_Qty,
-           p.Prod_Id, p.Prod_Name, p.Prod_Price, p.Prod_Image, p.Prod_Size, p.Prod_Stock
-    FROM Cart c
-    JOIN Products p ON c.Cart_ProdId = p.Prod_Id
-    WHERE c.Cart_AcctId = ?
-    ORDER BY c.Cart_Id ASC
-");
-$cartQ->bind_param("i", $acctId);
-$cartQ->execute();
-$cartResult = $cartQ->get_result();
+$cartResult = $store->cartItems($acctId);
 $cartItems  = [];
 $subtotal   = 0;
 
@@ -58,10 +50,14 @@ $delivFee  = $subtotal >= 5000 ? 0 : 150;
 $total     = $subtotal + $delivFee;
 
 // ── LOAD CUSTOMER INFO for pre-fill ────────────────────────────────
-$custQ = $conn->prepare("SELECT Cust_Id, Cust_FName, Cust_LName, Cust_Phone FROM Customers WHERE Cust_Id = ? LIMIT 1");
-$custQ->bind_param("i", $custId);
-$custQ->execute();
-$cust = $custQ->get_result()->fetch_assoc();
+$profile = $store->userProfile($acctId);
+$cust = [
+    'Cust_Id' => $acctId,
+    'Cust_FName' => $profile['firstName'] ?? '',
+    'Cust_LName' => $profile['lastName'] ?? '',
+    'Cust_Phone' => $profile['phone'] ?? '',
+    'Cust_Address' => $profile['address'] ?? '',
+];
 
 // ── PLACE ORDER ────────────────────────────────────────────────────
 if (isset($_POST['place_order'])) {
@@ -74,45 +70,18 @@ if (isset($_POST['place_order'])) {
     if (empty($address) || empty($fname) || empty($lname)) {
         $formError = "Please fill in your first name, last name, and delivery address.";
     } else {
-        // Insert into Orders
-        $ordStmt = $conn->prepare("
-            INSERT INTO Orders (Ord_AcctId, Ord_CustId, Ord_Total, Ord_DelivFee, Ord_Address, Ord_Status)
-            VALUES (?, ?, ?, ?, ?, 'pending')
-        ");
-        $ordStmt->bind_param("iidds", $acctId, $custId, $total, $delivFee, $address);
-        $ordStmt->execute();
-        $ordId = $conn->insert_id;
+        $store->updateUserProfile($acctId, [
+            'firstName' => $fname,
+            'lastName' => $lname,
+            'phone' => $phone,
+            'address' => $address,
+        ]);
 
-        // Insert each cart item into OrderItems
-        $itemStmt = $conn->prepare("
-            INSERT INTO OrderItems (OrdItem_OrdId, OrdItem_ProdId, OrdItem_ProdName, OrdItem_Price, OrdItem_Qty)
-            VALUES (?, ?, ?, ?, ?)
-        ");
-        foreach ($cartItems as $item) {
-            $itemStmt->bind_param("iisdi",
-                $ordId,
-                $item['Prod_Id'],
-                $item['Prod_Name'],
-                $item['Prod_Price'],
-                $item['Cart_Qty']
-            );
-            $itemStmt->execute();
-
-            // Decrement stock safely
-            $stk = $conn->prepare("UPDATE Products SET Prod_Stock = Prod_Stock - ? WHERE Prod_Id = ? AND Prod_Stock >= ?");
-            $stk->bind_param("iii", $item['Cart_Qty'], $item['Prod_Id'], $item['Cart_Qty']);
-            $stk->execute();
-        }
-
-        // Clear cart
-        $delCart = $conn->prepare("DELETE FROM Cart WHERE Cart_AcctId = ?");
-        $delCart->bind_param("i", $acctId);
-        $delCart->execute();
-
-        // Update customer phone/name if changed
-        $updCust = $conn->prepare("UPDATE Customers SET Cust_FName=?, Cust_LName=?, Cust_Phone=? WHERE Cust_Id=?");
-        $updCust->bind_param("sssi", $fname, $lname, $phone, $custId);
-        $updCust->execute();
+        $ordId = $store->placeOrder($acctId, [
+            'firstName' => $fname,
+            'lastName' => $lname,
+            'phone' => $phone,
+        ], $address, $subtotal, $delivFee, $cartItems);
 
         $_SESSION['cart_count'] = 0;
         $_SESSION['success']    = "Order #".str_pad($ordId,5,'0',STR_PAD_LEFT)." placed successfully!";

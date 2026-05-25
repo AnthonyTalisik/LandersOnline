@@ -2,6 +2,8 @@
 ob_start();
 session_start();
 require_once '../config/db.php';
+require_once '../config/firebase_store.php';
+$store = firebaseStore();
 
 if (!isset($_SESSION['account_id']) || $_SESSION['role'] !== 'admin') {
     header('Location: /LandersOnline/index.php');
@@ -11,46 +13,14 @@ if (!isset($_SESSION['account_id']) || $_SESSION['role'] !== 'admin') {
 if (isset($_POST['update_status'])) {
     $oid = (int) $_POST['ord_id'];
     $status = $_POST['status'];
-    $s = $conn->prepare("UPDATE Orders SET Ord_Status=? WHERE Ord_Id=?");
-    $s->bind_param("si", $status, $oid);
-    $s->execute();
+    $store->updateOrderStatus($oid, $status);
     $_SESSION['success'] = "Order #" . str_pad($oid, 5, '0', STR_PAD_LEFT) . " updated to " . ucfirst($status) . ".";
     header('Location: manage_orders.php');
     exit();
 }
 
 $filter = $_GET['status'] ?? '';
-if ($filter) {
-    $stmt = $conn->prepare("
-        SELECT 
-            o.*, 
-            CONCAT(cu.Cust_FName, ' ', cu.Cust_LName) AS Cust_Name,
-            cu.Cust_Phone,
-            COUNT(oi.OrdItem_Id) AS items
-        FROM Orders o
-        JOIN Customers cu ON o.Ord_CustId=cu.Cust_Id
-        LEFT JOIN OrderItems oi ON oi.OrdItem_OrdId=o.Ord_Id
-        WHERE o.Ord_Status=?
-        GROUP BY o.Ord_Id 
-        ORDER BY o.Ord_Id DESC
-    ");
-    $stmt->bind_param("s", $filter);
-    $stmt->execute();
-    $orders = $stmt->get_result();
-} else {
-    $orders = $conn->query("
-    SELECT 
-        o.*,        
-        CONCAT(cu.Cust_FName, ' ', cu.Cust_LName) AS Cust_Name,
-        cu.Cust_Phone,
-        COUNT(oi.OrdItem_Id) AS items
-    FROM Orders o
-    JOIN Customers cu ON o.Ord_CustId=cu.Cust_Id
-    LEFT JOIN OrderItems oi ON oi.OrdItem_OrdId=o.Ord_Id
-    GROUP BY o.Ord_Id 
-    ORDER BY o.Ord_Id DESC
-");
-}
+$orders = $store->orders($filter);
 
 $title = 'Manage Orders';
 $currentPage = 'manage_orders.php';
@@ -473,7 +443,7 @@ $currentPage = 'manage_orders.php';
                                                 <?= htmlspecialchars($o['Cust_Phone'] ?? '') ?>
                                             </div>
                                         </td>
-                                        <td><?= $o['items'] ?> item(s)</td>
+                                        <td><?= $o['item_count'] ?? 0 ?> item(s)</td>
                                         <td style="font-weight:700;">₱<?= number_format($o['Ord_Total'], 2) ?></td>
                                         <td>
                                             <?= $o['Ord_DelivFee'] == 0

@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once "../config/db.php";
+require_once "../config/firebase_store.php";
+$store = firebaseStore();
 
 // Require a valid product ID
 if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
@@ -9,35 +11,18 @@ if (!isset($_GET['id']) || !is_numeric($_GET['id'])) {
 }
 $prodId = (int) $_GET['id'];
 
-// Fetch the product with category name
-$stmt = $conn->prepare("
-    SELECT p.*, c.Cat_Name, c.Cat_Id
-    FROM Products p
-    LEFT JOIN Categories c ON p.Prod_CatId = c.Cat_Id
-    WHERE p.Prod_Id = ? AND p.Prod_Status = 'active'
-    LIMIT 1
-");
-$stmt->bind_param("i", $prodId);
-$stmt->execute();
-$prod = $stmt->get_result()->fetch_assoc();
+$prod = $store->productById($prodId, true);
 
 if (!$prod) {
     header('Location: /LandersOnline/index.php');
     exit();
 }
 
-// Fetch related products from the same category (exclude current)
-$relStmt = $conn->prepare("
-    SELECT p.*, c.Cat_Name
-    FROM Products p
-    LEFT JOIN Categories c ON p.Prod_CatId = c.Cat_Id
-    WHERE p.Prod_CatId = ? AND p.Prod_Id != ? AND p.Prod_Status = 'active'
-    ORDER BY RAND()
-    LIMIT 5
-");
-$relStmt->bind_param("ii", $prod['Prod_CatId'], $prodId);
-$relStmt->execute();
-$related = $relStmt->get_result();
+$relatedRows = array_values(array_filter(
+    $store->productsWithCategory((int)$prod['Prod_CatId'], true)->fetch_all(),
+    fn($p) => (int)$p['Prod_Id'] !== $prodId
+));
+$related = $store->result(array_slice($relatedRows, 0, 5));
 
 $title = htmlspecialchars($prod['Prod_Name']) . " – LandersOnline";
 include "../layout/layout.php";

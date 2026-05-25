@@ -1,0 +1,4 @@
+/vendor/
+.env
+config/firebase_store.php
+serviceAccountKey.json  

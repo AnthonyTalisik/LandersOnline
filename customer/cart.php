@@ -1,6 +1,8 @@
 <?php
 session_start();
 require_once "../config/db.php";
+require_once "../config/firebase_store.php";
+$store = firebaseStore();
 
 if (!isset($_SESSION['account_id'])) {
     $_SESSION['open_modal'] = 'login';
@@ -18,19 +20,10 @@ if (isset($_POST['action']) && $_POST['action'] === 'add') {
     // INSERT if new, or add to existing qty if already in cart.
     // ON DUPLICATE KEY handles the UNIQUE(Cart_AcctId, Cart_ProdId)
     // constraint so it never throws a duplicate error.
-    $stmt = $conn->prepare("
-        INSERT INTO Cart (Cart_AcctId, Cart_ProdId, Cart_Qty)
-        VALUES (?, ?, ?)
-        ON DUPLICATE KEY UPDATE Cart_Qty = Cart_Qty + VALUES(Cart_Qty)
-    ");
-    $stmt->bind_param("iii", $acctId, $prodId, $qty);
-    $stmt->execute();
+    $store->addToCart($acctId, $prodId, $qty);
 
     // Update session cart count
-    $cq = $conn->prepare("SELECT IFNULL(SUM(Cart_Qty), 0) AS t FROM Cart WHERE Cart_AcctId=?");
-    $cq->bind_param("i", $acctId);
-    $cq->execute();
-    $_SESSION['cart_count'] = (int) $cq->get_result()->fetch_assoc()['t'];
+    $_SESSION['cart_count'] = $store->cartCount($acctId);
 
     $_SESSION['success'] = "Item added to cart!";
     header("Location: " . ($_SERVER['HTTP_REFERER'] ?? '/LandersOnline/customer/cart.php'));
@@ -39,41 +32,25 @@ if (isset($_POST['action']) && $_POST['action'] === 'add') {
 
 // ── UPDATE QTY ──
 if (isset($_POST['update_qty'])) {
-    $cartId = (int) $_POST['cart_id'];
+    $cartId = (string) $_POST['cart_id'];
     $qty = max(1, (int) $_POST['qty']);
-    $upd = $conn->prepare("UPDATE Cart SET Cart_Qty=? WHERE Cart_Id=? AND Cart_AcctId=?");
-    $upd->bind_param("iii", $qty, $cartId, $acctId);
-    $upd->execute();
+    $store->updateCartQty($acctId, $cartId, $qty);
     header("Location: cart.php");
     exit();
 }
 
 // ── REMOVE ITEM ──
 if (isset($_GET['remove'])) {
-    $cartId = (int) $_GET['remove'];
-    $del = $conn->prepare("DELETE FROM Cart WHERE Cart_Id=? AND Cart_AcctId=?");
-    $del->bind_param("ii", $cartId, $acctId);
-    $del->execute();
-
-    $cq = $conn->prepare("SELECT SUM(Cart_Qty) as t FROM Cart WHERE Cart_AcctId=?");
-    $cq->bind_param("i", $acctId);
-    $cq->execute();
-    $_SESSION['cart_count'] = (int) $cq->get_result()->fetch_assoc()['t'];
+    $cartId = (string) $_GET['remove'];
+    $store->removeCartItem($acctId, $cartId);
+    $_SESSION['cart_count'] = $store->cartCount($acctId);
 
     header("Location: cart.php");
     exit();
 }
 
 // ── LOAD CART ──
-$cartItems = $conn->prepare("
-    SELECT c.*, p.Prod_Name, p.Prod_Price, p.Prod_Image, p.Prod_Size
-    FROM Cart c
-    JOIN Products p ON c.Cart_ProdId = p.Prod_Id
-    WHERE c.Cart_AcctId = ?
-");
-$cartItems->bind_param("i", $acctId);
-$cartItems->execute();
-$items = $cartItems->get_result();
+$items = $store->cartItems($acctId);
 
 $grandTotal = 0;
 
